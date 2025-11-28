@@ -24,27 +24,27 @@
    git clone https://github.com/DaniilPobeda/eLibrary.git
    cd eLibrary
 
-2. **Создание виртуального окружения**
+2. ### Создание виртуального окружения
  ```bash
   python -m venv venv
   source venv/bin/activate  # Linux/Mac
   venv\Scripts\activate     # Windows
 
-3. **Установка зависимостей**
-pip install -r requirements.txt
+3. ### Установка зависимостей
+   pip install -r requirements.txt
 
-4. **Миграции базы данных**
-python manage.py makemigrations
-python manage.py migrate
+4. ### Миграции базы данных
+   python manage.py makemigrations
+   python manage.py migrate
 
-5. Создание супер пользователя
-python manage.py createsuperuser
+5. ### Создание супер пользователя
+   python manage.py createsuperuser
 
-6. Запуск сервера
-python manage.py runserver
+6. ### Запуск сервера
+   python manage.py runserver
 
-7. Откурыть в браузере и вставить
-http://127.0.0.1:8000/
+7. ### Откурыть в браузере и вставить
+   http://127.0.0.1:8000/
 
 
 
