@@ -19,32 +19,38 @@
 
 ## 🚀 Быстрый старт
 
-1. ### Установка и запуск
- ```bash
-   git clone https://github.com/DaniilPobeda/eLibrary.git
-   cd eLibrary
+# Быстрый старт
 
-2. ### Создание виртуального окружения
- ```bash
-  python -m venv venv
-  source venv/bin/activate  # Linux/Mac
-  venv\Scripts\activate     # Windows
+## Установка и запуск
 
-3. ### Установка зависимостей
-   pip install -r requirements.txt
+1. **Клонирование репозитория**  
+   `git clone https://github.com/DaniilPobeda/elibrary.git`  
+   `cd elibrary`
 
-4. ### Миграции базы данных
-   python manage.py makemigrations
-   python manage.py migrate
+2. **Создание виртуального окружения**  
+   `python -m venv venv`  
+   **Активация:**  
+   Linux/Mac: `source venv/bin/activate`  
+   Windows: `venv\Scripts\activate`
 
-5. ### Создание супер пользователя
-   python manage.py createsuperuser
+3. **Установка зависимостей**  
+   `pip install -r requirements.txt`
 
-6. ### Запуск сервера
-   python manage.py runserver
+4. **Миграции базы данных**  
+   `python manage.py makemigrations`  
+   `python manage.py migrate`
 
-7. ### Откурыть в браузере и вставить
-   http://127.0.0.1:8000/
+5. **Создание суперпользователя**  
+   `python manage.py createsuperuser`
+
+6. **Запуск сервера**  
+   `python manage.py runserver`
+
+7. **Открыть в браузере**  
+   `http://127.0.0.1:8000/`
+
+**Доступ к админ-панели:**  
+`http://127.0.0.1:8000/admin/`
 
 
 
