@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }} - Электронная библиотека</title>
+    <!-- Подключение Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .viewbook-container {
+            max-width: 900px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .book-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .book-content {
+            padding: 40px;
+        }
+        .book-cover {
+            width: 200px;
+            height: 280px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .book-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+        .summary-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #495057;
+        }
+        .action-buttons {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+        .btn-download {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .category-badge {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            margin-left: 10px;
+        }
+        .nav-breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .book-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .related-books {
+            margin-top: 40px;
+        }
+        .book-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-book-half me-2"></i>Электронная библиотека
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'explore' %}">Обзор</a>
+                {% if user.is_authenticated %}
+                    <a class="nav-link" href="{% url 'contri' user.id %}">Мои книги</a>
+                    <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                {% else %}
+                    <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb" class="nav-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'explore' %}">Обзор</a></li>
+                {% if user.is_authenticated and user.id == book.author_id %}
+                    <li class="breadcrumb-item"><a href="{% url 'contri' user.id %}">Мои книги</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">{{ book.title|truncatechars:40 }}</li>
+            </ol>
+        </nav>
+
+        <div class="viewbook-container">
+            <!-- Шапка книги -->
+            <div class="book-header">
+                <div class="book-cover">
+                    <i class="bi bi-book"></i>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">{{ book.title }}</h1>
+                <div class="d-flex justify-content-center align-items-center">
+                    <h4 class="mb-0">{{ book.author }}</h4>
+                    <span class="badge bg-light text-dark category-badge">
+                        {% if book.category == 'Education' %}
+                            <i class="bi bi-mortarboard me-1"></i>Образование
+                        {% elif book.category == 'Fiction' %}
+                            <i class="bi bi-palette me-1"></i>Художественная литература
+                        {% elif book.category == 'Science' %}
+                            <i class="bi bi-flask me-1"></i>Наука
+                        {% else %}
+                            {{ book.category }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Основное содержание -->
+            <div class="book-content">
+                <!-- Статистика -->
+                <div class="book-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ book.pages }}</div>
+                        <div class="stat-label">Страниц</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% if book.category == 'Education' %}
+                                <i class="bi bi-mortarboard"></i>
+                            {% elif book.category == 'Fiction' %}
+                                <i class="bi bi-palette"></i>
+                            {% elif book.category == 'Science' %}
+                                <i class="bi bi-flask"></i>
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Категория</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <i class="bi bi-file-pdf"></i>
+                        </div>
+                        <div class="stat-label">Формат</div>
+                    </div>
+                </div>
+
+                <!-- Мета-информация -->
+                <div class="book-meta">
+                    <div class="meta-item">
+                        <span class="fw-bold">Автор:</span>
+                        <span>{{ book.author }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="fw-bold">Категория:</span>
+                        <span>
+                            {% if book.category == 'Education' %}Образование
+                            {% elif book.category == 'Fiction' %}Художественная литература
+                            {% elif book.category == 'Science' %}Наука
+                            {% else %}{{ book.category }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="fw-bold">Количество страниц:</span>
+                        <span>{{ book.pages }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="fw-bold">Формат файла:</span>
+                        <span>PDF <i class="bi bi-file-pdf-fill text-danger"></i></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="fw-bold">Добавлена:</span>
+                        <span>{{ book.uploaded_at|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Аннотация -->
+                <div class="mb-4">
+                    <h4 class="mb-3"><i class="bi bi-chat-quote me-2"></i>Аннотация</h4>
+                    <div class="summary-content">
+                        {{ book.summary|safe }}
+                    </div>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="action-buttons">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{{ book.pdf.url }}" class="btn btn-download me-md-2" download>
+                                    <i class="bi bi-download me-2"></i>Скачать PDF
+                                </a>
+                                <a href="{{ book.pdf.url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye me-2"></i>Читать онлайн
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            {% if user.is_authenticated and user.id == book.author_id %}
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{% url 'editBook' book.id %}" class="btn btn-warning me-2">
+                                        <i class="bi bi-pencil me-1"></i>Редактировать
+                                    </a>
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="bi bi-trash me-1"></i>Удалить
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Похожие книги -->
+                <div class="related-books">
+                    <h5 class="mb-3"><i class="bi bi-collection me-2"></i>Похожие книги</h5>
+                    <div class="row">
+                        {% for related_book in related_books %}
+                            {% if related_book.id != book.id %}
+                                <div class="col-md-6">
+                                    <div class="book-card">
+                                        <h6 class="fw-bold">{{ related_book.title }}</h6>
+                                        <p class="text-muted small mb-2">{{ related_book.author }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-secondary">{{ related_book.pages }} стр.</span>
+                                            <a href="{% url 'viewBook' related_book.id %}" class="btn btn-sm btn-outline-primary">
+                                                Подробнее
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="col-12">
+                                <p class="text-muted text-center">Пока нет похожих книг</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    {% if user.is_authenticated and user.id == book.author_id %}
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить книгу <strong>"{{ book.title }}"</strong>?</p>
+                    <p class="text-danger">Это действие нельзя будет отменить.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form method="POST" action="{% url 'deleteBook' book.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Удалить книгу</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Подключение Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Подключение Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Анимация появления элементов
+            const elements = document.querySelectorAll('.book-stats, .book-meta, .summary-content');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Подсветка активной кнопки
+            const downloadBtn = document.querySelector('.btn-download');
+            downloadBtn.addEventListener('click', function() {
+                this.innerHTML = '<i class="bi bi-check-circle me-2"></i>Скачивание началось';
+                this.classList.remove('btn-download');
+                this.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-download me-2"></i>Скачать PDF';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-download');
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

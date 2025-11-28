@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать книгу - Электронная библиотека</title>
+    <!-- Подключение Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .editbook-container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 15px;
+        }
+        .book-preview {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f39c12;
+        }
+        .form-control:focus {
+            border-color: #f39c12;
+            box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
+        }
+        .btn-warning {
+            background-color: #f39c12;
+            border-color: #f39c12;
+            padding: 10px 25px;
+            font-weight: 600;
+        }
+        .btn-warning:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+        }
+        .btn-outline-secondary {
+            padding: 10px 25px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+        .file-input-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .character-count {
+            font-size: 0.875rem;
+            color: #6c757d;
+            text-align: right;
+        }
+        .nav-breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .current-file {
+            background-color: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .form-section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-book-half me-2"></i>Электронная библиотека
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'explore' %}">Обзор</a>
+                <a class="nav-link" href="{% url 'contri' user.id %}">Мои книги</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb" class="nav-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'contri' user.id %}">Мои книги</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'viewBook' book.id %}">{{ book.title|truncatechars:30 }}</a></li>
+                <li class="breadcrumb-item active">Редактировать</li>
+            </ol>
+        </nav>
+
+        <div class="editbook-container">
+            <div class="page-header">
+                <h2><i class="bi bi-pencil-square me-2"></i>Редактировать книгу</h2>
+                <p class="text-muted">Внесите необходимые изменения в информацию о книге</p>
+            </div>
+
+            <!-- Информация о текущей книге -->
+            <div class="book-preview">
+                <h5><i class="bi bi-book me-2"></i>Текущие данные книги</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Название:</strong> {{ book.title }}<br>
+                        <strong>Категория:</strong> 
+                        {% if book.category == 'Education' %}Образование
+                        {% elif book.category == 'Fiction' %}Художественная литература
+                        {% elif book.category == 'Science' %}Наука
+                        {% else %}{{ book.category }}{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Страниц:</strong> {{ book.pages }}<br>
+                        <strong>Автор:</strong> {{ book.author }}<br>
+                        <strong>Добавлена:</strong> {{ book.uploaded_at|date:"d.m.Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Отображение ошибок формы -->
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Ошибки в форме:</h5>
+                    <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'editBook' book.id %}" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h5 class="section-title">Основная информация</h5>
+                    
+                    <div class="row">
+                        <!-- Название книги -->
+                        <div class="col-md-12 mb-3">
+                            <label for="id_title" class="form-label required-field">Название книги</label>
+                            <input type="text" class="form-control" id="id_title" name="title" 
+                                   maxlength="150" placeholder="Введите полное название книги" required
+                                   value="{{ form.title.value|default:book.title }}">
+                            <div class="form-text">Максимум 150 символов</div>
+                        </div>
+                    </div>
+
+                    <!-- Аннотация -->
+                    <div class="mb-3">
+                        <label for="id_summary" class="form-label required-field">Аннотация</label>
+                        <textarea class="form-control" id="id_summary" name="summary" rows="5" 
+                                  maxlength="2000" placeholder="Опишите содержание книги, основные идеи, тематику..." 
+                                  required>{{ form.summary.value|default:book.summary }}</textarea>
+                        <div class="character-count">
+                            <span id="summary-counter">0</span>/2000 символов
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Количество страниц -->
+                        <div class="col-md-6 mb-3">
+                            <label for="id_pages" class="form-label required-field">Количество страниц</label>
+                            <input type="number" class="form-control" id="id_pages" name="pages" 
+                                   min="1" max="9999" placeholder="Например: 250" required
+                                   value="{{ form.pages.value|default:book.pages }}">
+                        </div>
+
+                        <!-- Категория -->
+                        <div class="col-md-6 mb-3">
+                            <label for="id_category" class="form-label required-field">Категория</label>
+                            <select class="form-select" id="id_category" name="category" required>
+                                <option value="">Выберите категорию</option>
+                                <option value="Education" {% if form.category.value == 'Education' or book.category == 'Education' %}selected{% endif %}>Образование</option>
+                                <option value="Fiction" {% if form.category.value == 'Fiction' or book.category == 'Fiction' %}selected{% endif %}>Художественная литература</option>
+                                <option value="Science" {% if form.category.value == 'Science' or book.category == 'Science' %}selected{% endif %}>Наука</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5 class="section-title">Файл книги</h5>
+                    
+                    <!-- Текущий PDF файл -->
+                    <div class="current-file">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-pdf-fill text-danger me-2"></i>
+                                <strong>Текущий файл:</strong> 
+                                <a href="{{ book.pdf.url }}" target="_blank" class="text-decoration-none">
+                                    {{ book.pdf.name|cut:"pdfs/" }}
+                                </a>
+                            </div>
+                            <span class="badge bg-success">Загружен</span>
+                        </div>
+                    </div>
+
+                    <!-- Замена PDF файла -->
+                    <div class="mb-3">
+                        <label for="id_pdf" class="form-label">Заменить PDF файл</label>
+                        <input type="file" class="form-control" id="id_pdf" name="pdf" 
+                               accept=".pdf">
+                        <div class="file-input-info">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Оставьте поле пустым, если не хотите менять файл. Поддерживаются только PDF файлы до 10MB
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'viewBook' book.id %}" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-eye me-1"></i>Просмотр
+                        </a>
+                        <a href="{% url 'contri' user.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Назад к книгам
+                        </a>
+                    </div>
+                    <div>
+                        <button type="reset" class="btn btn-outline-danger me-2">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Отменить изменения
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle me-1"></i>Сохранить изменения
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Подключение Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Подключение Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Подсчет символов в аннотации
+            const summaryTextarea = document.getElementById('id_summary');
+            const counter = document.getElementById('summary-counter');
+            
+            function updateCounter() {
+                counter.textContent = summaryTextarea.value.length;
+            }
+            
+            summaryTextarea.addEventListener('input', updateCounter);
+            updateCounter(); // Инициализация при загрузке
+            
+            // Валидация файла PDF (если выбран новый файл)
+            const pdfInput = document.getElementById('id_pdf');
+            pdfInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const fileType = file.type;
+                    if (fileType !== 'application/pdf') {
+                        alert('Пожалуйста, выберите файл в формате PDF.');
+                        this.value = '';
+                    }
+                    
+                    // Проверка размера файла (10MB)
+                    const maxSize = 10 * 1024 * 1024; // 10MB в байтах
+                    if (file.size > maxSize) {
+                        alert('Файл слишком большой. Максимальный размер: 10MB.');
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Подтверждение сброса формы
+            const resetButton = document.querySelector('button[type="reset"]');
+            resetButton.addEventListener('click', function(e) {
+                if (!confirm('Вы уверены, что хотите отменить все изменения и вернуть исходные значения?')) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Предупреждение при уходе со страницы с несохраненными изменениями
+            let formChanged = false;
+            const form = document.querySelector('form');
+            const formInputs = form.querySelectorAll('input, textarea, select');
+            
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    formChanged = true;
+                });
+            });
+            
+            window.addEventListener('beforeunload', function(e) {
+                if (formChanged) {
+                    e.preventDefault();
+                    e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
+                }
+            });
+            
+            // Сброс флага изменений при отправке формы
+            form.addEventListener('submit', function() {
+                formChanged = false;
+            });
+        });
+    </script>
+</body>
+</html>

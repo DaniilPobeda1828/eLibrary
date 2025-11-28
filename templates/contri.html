@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои книги - Электронная библиотека</title>
+    <!-- Подключение Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .contri-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 20px;
+        }
+        .stats-cards {
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .book-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
+        }
+        .book-cover {
+            width: 80px;
+            height: 110px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .book-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+        .book-meta {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .category-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+        .action-buttons {
+            margin-top: 15px;
+        }
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+        .filter-buttons {
+            margin-bottom: 25px;
+        }
+        .nav-breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .book-summary-preview {
+            font-size: 0.9rem;
+            color: #495057;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .book-header-row {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .sort-dropdown {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-book-half me-2"></i>Электронная библиотека
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'explore' %}">Обзор</a>
+                <a class="nav-link active" href="{% url 'contri' user.id %}">Мои книги</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb" class="nav-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+                <li class="breadcrumb-item active">Мои книги</li>
+            </ol>
+        </nav>
+
+        <div class="contri-container">
+            <!-- Заголовок страницы -->
+            <div class="page-header">
+                <h2><i class="bi bi-collection me-2"></i>Мои книги</h2>
+                <p class="text-muted">Управляйте книгами, которые вы добавили в библиотеку</p>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-cards">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ books|length }}</div>
+                            <div class="stat-label">Всего книг</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <div class="stat-number">
+                                {{ books|dictsort:"category"|length }}
+                            </div>
+                            <div class="stat-label">Категорий</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <div class="stat-number">
+                                {% widthratio total_pages 1 1 %}
+                            </div>
+                            <div class="stat-label">Всего страниц</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <div class="stat-number">
+                                {{ latest_book_date|date:"d.m" }}
+                            </div>
+                            <div class="stat-label">Последняя добавлена</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель управления -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="filter-buttons">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary active" data-filter="all">
+                            Все книги
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="Education">
+                            Образование
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="Fiction">
+                            Художественные
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" data-filter="Science">
+                            Наука
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <div class="sort-dropdown">
+                        <select class="form-select" id="sortSelect">
+                            <option value="newest">Сначала новые</option>
+                            <option value="oldest">Сначала старые</option>
+                            <option value="title">По названию</option>
+                            <option value="pages">По количеству страниц</option>
+                        </select>
+                    </div>
+                    <a href="{% url 'addBook' user.id %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Добавить книгу
+                    </a>
+                </div>
+            </div>
+
+            <!-- Список книг -->
+            <div id="booksContainer">
+                {% if books %}
+                    <div class="row">
+                        {% for book in books %}
+                            <div class="col-lg-6 mb-3" data-category="{{ book.category }}">
+                                <div class="book-card">
+                                    <div class="row">
+                                        <div class="col-auto">
+                                            <div class="book-cover">
+                                                <i class="bi bi-book"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="book-header-row">
+                                                <div>
+                                                    <h5 class="book-title">{{ book.title }}</h5>
+                                                    <div class="book-meta">
+                                                        <span class="me-3">
+                                                            <i class="bi bi-person me-1"></i>{{ book.author }}
+                                                        </span>
+                                                        <span>
+                                                            <i class="bi bi-file-text me-1"></i>{{ book.pages }} стр.
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span class="badge 
+                                                    {% if book.category == 'Education' %}bg-primary
+                                                    {% elif book.category == 'Fiction' %}bg-success
+                                                    {% elif book.category == 'Science' %}bg-warning text-dark
+                                                    {% else %}bg-secondary{% endif %} category-badge">
+                                                    {{ book.category }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="book-summary-preview">
+                                                {{ book.summary|truncatewords:20 }}
+                                            </div>
+                                            
+                                            <div class="action-buttons">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{% url 'viewBook' book.id %}" class="btn btn-outline-primary">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'editBook' book.id %}" class="btn btn-outline-warning">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal{{ book.id }}">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                    <a href="{{ book.pdf.url }}" class="btn btn-outline-success" download>
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Модальное окно удаления для каждой книги -->
+                            <div class="modal fade" id="deleteModal{{ book.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Подтверждение удаления</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Вы уверены, что хотите удалить книгу <strong>"{{ book.title }}"</strong>?</p>
+                                            <p class="text-danger"><small>Это действие нельзя отменить.</small></p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                            <form method="POST" action="{% url 'deleteBook' book.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Удалить</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Состояние пустого списка -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h4>У вас пока нет книг</h4>
+                        <p class="mb-4">Добавьте свою первую книгу в библиотеку</p>
+                        <a href="{% url 'addBook' user.id %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Добавить первую книгу
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Пагинация (если много книг) -->
+            {% if books|length > 8 %}
+            <nav aria-label="Навигация по страницам" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Предыдущая</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Следующая</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Подключение Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Подключение Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Фильтрация по категориям
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            const bookCards = document.querySelectorAll('[data-category]');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Активная кнопка
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Фильтрация карточек
+                    bookCards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Сортировка
+            const sortSelect = document.getElementById('sortSelect');
+            sortSelect.addEventListener('change', function() {
+                // Здесь можно добавить логику сортировки через AJAX
+                console.log('Сортировка по:', this.value);
+            });
+            
+            // Анимация появления карточек
+            const cards = document.querySelectorAll('.book-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Подсветка при наведении на действия
+            const actionButtons = document.querySelectorAll('.btn-group-sm .btn');
+            actionButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                });
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
